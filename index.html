@@ -162,6 +162,7 @@
             height: 100%;
             padding: 8px;
             border-radius: 16px;
+            overflow: hidden; /* Empêche l'image de dépasser */
         }
 
         .weather-card:not(.disabled):hover {
@@ -203,6 +204,14 @@
             box-shadow: inset 0 4px 10px rgba(0,0,0,0.4);
         }
 
+        /* Image style within cards */
+        .card-image {
+            max-width: 100%;
+            max-height: 80px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+
         .hidden { display: none !important; }
 
         .training-card {
@@ -223,23 +232,13 @@
             border-color: #6366f1;
             background: #334155;
         }
-
-        .emoji-with-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .arrow-indicator {
-            position: absolute;
-            font-size: 1.2rem;
-            color: #ef4444;
+        .training-label {
+            margin-top: 8px;
             font-weight: bold;
-            bottom: -5px;
-            right: -10px;
-            filter: drop-shadow(0 0 2px black);
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            text-transform: capitalize;
         }
-        .arrow-knee { bottom: 5px; right: -5px; }
 
         #game-grid {
             display: grid;
@@ -392,18 +391,18 @@
         ];
 
         const bodyData = [
-            { id: 'head', text: "Head", emoji: "👤" },
-            { id: 'shoulders', text: "Shoulders", emoji: "👤", hasArrow: true, arrowType: 'shoulder' }, 
-            { id: 'knees', text: "Knees", emoji: "🦵", hasArrow: true, arrowType: 'knee' },
-            { id: 'toes', text: "Toes", emoji: "👣" },
-            { id: 'eyes', text: "Eyes", emoji: "👀" },
-            { id: 'ears', text: "Ears", emoji: "👂" },
-            { id: 'mouth', text: "Mouth", emoji: "👄" },
-            { id: 'nose', text: "Nose", emoji: "👃" },
-            { id: 'hair', text: "Hair", emoji: "💇" },
+            { id: 'head', text: "Head", img: "HEAD.png" },
+            { id: 'shoulders', text: "Shoulders", img: "SHOULDERS.png" }, 
+            { id: 'knees', text: "Knees", img: "KNEES.png" },
+            { id: 'toes', text: "Toes", img: "TOES.png" },
+            { id: 'eyes', text: "Eyes", img: "EYE.png" },
+            { id: 'ears', text: "Ears", img: "EAR.png" },
+            { id: 'mouth', text: "Mouth", img: "MOUTH.png" },
+            { id: 'nose', text: "Nose", img: "NOSE.png" },
+            { id: 'hair', text: "Hair", img: "HAIR.png" },
             { id: 'teeth', text: "Teeth", emoji: "🦷" },
-            { id: 'small', text: "Small", emoji: "🐭" },
-            { id: 'big', text: "Big", emoji: "🐘" }
+            { id: 'small', text: "Small", img: "SMALL.png" },
+            { id: 'big', text: "Big", img: "BIG (2).png" }
         ];
 
         let score = 0;
@@ -413,8 +412,6 @@
         let currentLevelTime = 8000;
         let timerId = null;
         let startTime = 0;
-        
-        // Initialisé à null, sera créé au premier clic
         let audioCtx = null;
 
         const ship = document.getElementById('ship');
@@ -497,16 +494,13 @@
             });
         }
 
-        function createEmojiHTML(item, sizeClass = "text-4xl") {
-            if (item.hasArrow) {
-                let arrowClass = item.arrowType === 'knee' ? 'arrow-knee' : '';
-                let arrowChar = item.arrowType === 'knee' ? '↖' : '↙';
-                return `<div class="emoji-with-arrow">
-                    <span class="${sizeClass}">${item.emoji}</span>
-                    <span class="arrow-indicator ${arrowClass}">${arrowChar}</span>
-                </div>`;
+        function createContentHTML(item) {
+            if (item.img) {
+                return `<img src="${item.img}" alt="${item.text}" class="card-image" />`;
+            } else if (item.emoji) {
+                return `<span class="text-4xl">${item.emoji}</span>`;
             }
-            return `<span class="${sizeClass}">${item.emoji}</span>`;
+            return '';
         }
 
         function createTrainingCard(item, isColor) {
@@ -515,7 +509,8 @@
             if (isColor) {
                 card.innerHTML = `<div class="w-10 h-10 rounded-full border border-white/20 shadow-inner" style="background-color: ${item.hex}"></div>`;
             } else {
-                card.innerHTML = createEmojiHTML(item, "text-4xl");
+                card.innerHTML = createContentHTML(item);
+                // Pas de texte en anglais ici (suppression demandée)
             }
             
             card.onclick = () => speak(item.text);
@@ -571,7 +566,7 @@
                 if (isColorWave) {
                     btn.innerHTML = `<div class="color-blob" style="background-color: ${opt.hex}"></div>`;
                 } else {
-                    btn.innerHTML = createEmojiHTML(opt, "text-5xl");
+                    btn.innerHTML = createContentHTML(opt);
                 }
                 
                 btn.onclick = () => check(opt.id, btn);
@@ -681,6 +676,7 @@
             } else {
                 el.classList.add('wrong');
                 speak("Oh no!");
+                // No more action, wait for collision via timer
             }
         }
 
